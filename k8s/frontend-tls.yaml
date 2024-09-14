@@ -1,0 +1,21 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned
+  namespace: application
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: selfsigned-cert
+  namespace: application
+spec:
+  duration: 72h
+  renewBefore: 10h
+  dnsNames:
+    - frontend.example.com
+  secretName: frontend-tls
+  issuerRef:
+    name: selfsigned

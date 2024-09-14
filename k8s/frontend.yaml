@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
+  namespace: application
 spec:
   replicas: 2
   selector:
@@ -15,14 +16,20 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: <your-frontend-image>
+        image: frontend:1.0
         ports:
         - containerPort: 9090
         livenessProbe:
           httpGet:
-            path: /
+            path: /healthz
             port: 9090
-          initialDelaySeconds: 30
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 9090
+          initialDelaySeconds: 10
           periodSeconds: 10
 
 ---
@@ -30,6 +37,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: frontend-hpa
+  namespace: application
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -49,7 +57,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend
+  name: frontend-svc
+  namespace: application
 spec:
   selector:
     app: frontend
@@ -65,6 +74,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: frontend-ingress
+  namespace: application
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     cert-manager.io/cluster-issuer: "selfsigned-issuer"
@@ -77,11 +87,11 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: frontend
+            name: frontend-svc
             port:
               number: 80
   tls:
   - hosts:
     - frontend.example.com
-    secretName: frontend-tls-secret
+    secretName: frontend-tls
         

@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
+  namespace: application
 spec:
   replicas: 3
   selector:
@@ -27,16 +28,22 @@ spec:
             topologyKey: kubernetes.io/hostname
       containers:
       - name: backend
-        image: <your-backend-image>
+        image: backend:1.0
         env:
         - name: DB_HOST
-          value: database-svc
+          value: "database-svc.application.svc.cluster.local"
         - name: DB_NAME
           value: "DB_NAME"
         - name: DB_USER
-          value: "DB_USER"
+          valueFrom: 
+            secretKeyRef: 
+              name: database-secret
+              key: username
         - name: DB_PASS
-          value: "DB_PASS"
+          valueFrom: 
+            secretKeyRef: 
+              name: database-secret
+              key: password
         ports:
         - containerPort: 8080
 
@@ -44,7 +51,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend
+  name: backend-svc
+  namespace: application
 spec:
   selector:
     app: backend
@@ -52,4 +60,22 @@ spec:
     - protocol: TCP
       port: 8080
       targetPort: 8080
-  clusterIP: None
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-backend
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 8080
