@@ -79,6 +79,7 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     cert-manager.io/cluster-issuer: "selfsigned-issuer"
 spec:
+  ingressClassName: ingress-nginx
   rules:
   - host: frontend.example.com
     http:

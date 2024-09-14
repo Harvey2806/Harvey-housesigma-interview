@@ -27,7 +27,14 @@
 
 1. 替换 `DB_NAME` 和 `secret.yaml` 为实际信息数据库信息
 
-2. 使用 helm 部署 cert-manager, 参考[cert-manager](https://cert-manager.io/docs/installation/helm/):
+2. 使用 `helm` 部署 `nginx ingress controller`, 参考[nginx-ingress](https://kubernetes.github.io/ingress-nginx/deploy/):
+   ```
+   helm upgrade --install ingress-nginx ingress-nginx \
+   --repo https://kubernetes.github.io/ingress-nginx \
+   --namespace ingress-nginx --create-namespace
+   ```
+
+2. 使用 `helm` 部署 `cert-manager`, 参考[cert-manager](https://cert-manager.io/docs/installation/helm/):
    - `helm repo add jetstack https://charts.jetstack.io --force-update`
    - ```
      helm install cert-manager jetstack/cert-manager \
