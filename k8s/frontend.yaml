@@ -18,16 +18,11 @@ spec:
       - name: frontend
         image: frontend:1.0
         ports:
+        - containerPort: 80
         - containerPort: 9090
         livenessProbe:
           httpGet:
             path: /healthz
-            port: 9090
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /ready
             port: 9090
           initialDelaySeconds: 10
           periodSeconds: 10
@@ -63,11 +58,15 @@ spec:
   selector:
     app: frontend
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 80
+      targetPort: 80
+    - name: healthz
+      protocol: TCP
+      port: 9090
       targetPort: 9090
-  type: LoadBalancer
-  externalTrafficPolicy: Local
+  type: ClusterIP
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -77,6 +76,12 @@ metadata:
   namespace: application
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/health-check: "true"
+    nginx.ingress.kubernetes.io/health-check-path: "/healthz"
+    nginx.ingress.kubernetes.io/health-check-interval: "10"
+    nginx.ingress.kubernetes.io/health-check-timeout: "5"
+    nginx.ingress.kubernetes.io/health-check-unhealthy-threshold: "3"
+    nginx.ingress.kubernetes.io/health-check-healthy-threshold: "2"
     cert-manager.io/cluster-issuer: "selfsigned-issuer"
 spec:
   ingressClassName: ingress-nginx
@@ -84,6 +89,13 @@ spec:
   - host: frontend.example.com
     http:
       paths:
+      - path: /healthz
+        pathType: Exact
+        backend:
+          service:
+            name: frontend-svc
+            port:
+              number: 9090
       - path: /
         pathType: Prefix
         backend:

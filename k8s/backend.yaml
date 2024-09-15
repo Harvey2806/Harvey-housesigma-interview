@@ -71,6 +71,8 @@ spec:
   podSelector:
     matchLabels:
       app: backend
+  policyTypes:
+  - Ingress
   ingress:
   - from:
     - podSelector:

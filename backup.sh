@@ -65,4 +65,6 @@ exit
 EOF
 
 # 清理旧数据
-mongo --host $DB_Host --port $DB_Port --username $DB_Username --password $DB_Password -d $Mongo_DB --eval "db.$Mongo_Collection.remove({create_on: {$lt: ISODate(\"2024-01-01T03:33:11Z\")}});"
+createOn="2024-01-01T03:33:11Z"
+query="{ 'create_on': { \$lt: ISODate('$createOn') } }"
+mongo --host $DB_Host --port $DB_Port --username $DB_Username --password $DB_Password -d $Mongo_DB --eval "db.$Mongo_Collection.remove($query);"
