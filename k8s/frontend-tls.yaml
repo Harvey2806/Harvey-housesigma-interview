@@ -19,3 +19,4 @@ spec:
   secretName: frontend-tls
   issuerRef:
     name: selfsigned
+    kind: Issuer
